@@ -14,15 +14,42 @@ import javax.swing.SwingUtilities;
 
 public class NQueens {
 	private static int[] queens;
+	private static int size;
 	
 	public static void main (String[] args) {
-		int size = getInput();
+		size = getInput();
 		Board board = new Board(size);
 		queens = new int[size];
 		JPanel squares[][] = board.getSquares();
-		initiallyPlaceQueens(squares, size, queens);
 		setTimer();
+		initiallyPlaceQueens(squares, size, queens);
+		
+		AIModel myAIModel = new AIModel();
+		
+		boolean done = false;
+		while (!done)
+		{
+			myAIModel.performMove();
+			
+			if (testGameSolved()){
+				done = true;
+			}
+			else if (!myAIModel.testCanPerformMove()){ //stuck, force reset
+				initiallyPlaceQueens(squares, size, queens);
+			}
+		}
+		
 	}
+	
+	public static boolean testComplete() {
+		for (int y = 0; y < size; y++) {
+			for (int x = 0; x < size; x++){
+				
+			}
+		}
+		return true;
+	}
+	
 	
 	/**
 	 * Makes sure that the number of queens used is greater than 3
@@ -51,13 +78,21 @@ public class NQueens {
 	        squares[randomRow][i].add(new JLabel(new ImageIcon("res/queen.jpg")));
 	        queens[i] = randomRow;
 	    }
-	}
-	
+	} 
+
 	public static void setTimer() {
 		SwingUtilities.invokeLater( new Runnable() {
             public void run() {
             	new Countdown();
             }
         });
+	}
+	
+	
+	/*
+	 * TODO implement
+	 */
+	public static boolean testGameSolved(){
+		return false;
 	}
 }
