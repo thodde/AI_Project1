@@ -3,16 +3,8 @@
  *  in all child classes
  */
 
-public class AIModel {
-	public AIModel(){
-		
-	}
+public abstract class AIModel {
 	
-	public void performMove(){
-		return;
-	}
-	
-	public boolean testCanPerformMove(){
-		return false;
-	}
+	public abstract void performMove();
+	public abstract boolean testCanPerformMove();
 }

@@ -13,43 +13,51 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 public class NQueens {
-	private static int[] queens;
-	private static int size;
+	public static int[] queens;
+	public static int size;
+	public static enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
 	
 	public static void main (String[] args) {
 		size = getInput();
+		int completions = 0;
 		Board board = new Board(size);
 		queens = new int[size];
 		JPanel squares[][] = board.getSquares();
-		setTimer();
+
+		// temporarily disabled while I worked on the core application code 
+		//setTimer();
+
 		initiallyPlaceQueens(squares, size, queens);
+		AIModel myAIModel = new AIModelHillClimb();
 		
-		AIModel myAIModel = new AIModel();
-		
+		//eventually this can be used to repeat testing when we have to complete multiple iterations
 		boolean done = false;
 		while (!done)
 		{
+			//do everything required for one move
 			myAIModel.performMove();
+
+			//temporarily exit as the AI model is currently incomplete
+			done = true;
+
 			
-			if (testGameSolved()){
-				done = true;
+			if (testGameSolved()){ //is it solved?  if so mark as complete and keep going until time is done
+				completions++;
+				initiallyPlaceQueens(squares, size, queens);
 			}
 			else if (!myAIModel.testCanPerformMove()){ //stuck, force reset
 				initiallyPlaceQueens(squares, size, queens);
 			}
 		}
-		
-	}
-	
-	public static boolean testComplete() {
-		for (int y = 0; y < size; y++) {
-			for (int x = 0; x < size; x++){
-				
-			}
+
+		//temporary diagnostic output.  to be removed later
+		String outValue = "";
+		for (int i = 0; i < size; i++){
+			outValue = outValue + "(" + i + "," + queens[i] + ") ";
 		}
-		return true;
+		outValue = outValue + " Completions:" + completions;
+		JOptionPane.showMessageDialog(null, outValue);
 	}
-	
 	
 	/**
 	 * Makes sure that the number of queens used is greater than 3
@@ -88,11 +96,77 @@ public class NQueens {
         });
 	}
 	
-	
-	/*
-	 * TODO implement
+	/**
+	 * This function iterates through each queen and initiates the testBoardSquare function in every available direction for attack
+	 * ignore the UP and DOWN directions
+	 *  
+	 * @return true if no queens contest each other, false otherwise
 	 */
 	public static boolean testGameSolved(){
-		return false;
+		boolean retVal;
+		for (int i = 0; i < (size-1); i++){
+			retVal = (testBoardSquare(testDirection.UPLEFT, i, queens[i]) && testBoardSquare(testDirection.UPRIGHT, i, queens[i]) && 
+					testBoardSquare(testDirection.DOWNLEFT, i, queens[i]) && testBoardSquare(testDirection.DOWNRIGHT, i, queens[i])	&& 
+					testBoardSquare(testDirection.LEFT, i, queens[i]) && testBoardSquare(testDirection.RIGHT, i, queens[i]));
+			if (retVal == false)
+				return false;
+		}
+		return true;
 	}
+	
+	/**
+	 * This function checks to see if a queen resides on this test square.  If a queen is present then this means that
+	 * two queens can attack each other
+	 * 
+	 * @param direction The test direction
+	 * @param x
+	 * @param y
+	 * @return false if a queen resides on the square, true if there are no queens in this call and any recursive calls.
+	 */
+	public static boolean testBoardSquare(testDirection direction, int x, int y){
+		if ((x >= 0) && (x < size) && (y>= 0) && (y < size)){
+			if (queens[x] == y) 
+				return false;
+			else	{
+				int newX = x;
+				int newY = y;
+				switch (direction){
+				case UPLEFT:
+					newX--;
+					newY--;
+					break;
+				case UPRIGHT:
+					newX++;
+					newY--;
+					break;
+				case DOWNLEFT:
+					newX--;
+					newY++;
+					break;
+				case DOWNRIGHT:
+					newX++;
+					newY++;
+					break;
+				case UP:
+					newY--;
+					break;
+				case DOWN:
+					newY++;
+					break;
+				case RIGHT:
+					newX++;
+					break;
+				case LEFT:
+					newX--;
+					break;
+				default:
+					break;
+				}
+				return testBoardSquare(direction, newX, newY);
+			}
+		}
+		else
+			return true;
+	}
+
 }
