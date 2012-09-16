@@ -50,6 +50,15 @@ public class Board {
 	    frame.setVisible(true);
 	}
 	
+	public void clearQueens() {
+		for (int y = 0; y < size; y++)
+			for (int x = 0; x < size; x++){
+				squares[y][x].removeAll();
+				squares[y][x].validate();
+				squares[y][x].repaint();
+			}
+	}
+	
 	public int getSize() {
 		return size;
 	}

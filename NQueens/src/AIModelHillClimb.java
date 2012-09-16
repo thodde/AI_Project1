@@ -2,58 +2,93 @@ import javax.swing.JOptionPane;
 
 //import NQueens.testDirection;
 
+class PotentialMove {
+	public int xCoordinate, yCoordinate;
+}
+
 public class AIModelHillClimb extends AIModel {
-	static int localBoard[][];
-	static int size;
-	public static enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
+	int localBoard[][];
+	int size;
+	boolean foundBetterMove;
+	public enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
+	
+	public AIModelHillClimb() {
+		//grab the pertinent values from the NQueens board to make future references shorter
+		size = NQueens.size;
+		localBoard = new int[size][size];		
+	}
 	
 	@Override
 	public void performMove() {
-		//grab the pertinent values from the NQueens board to make future references shorter
-		size = NQueens.size;
-		localBoard = new int[size][size];
-		
 		//initialize the local board to zero
-		for (int x = 0; x < size-1; x++)
-			for (int y = 0; y < size-1; y++)
+		for (int x = 0; x <= size-1; x++)
+			for (int y = 0; y <= size-1; y++)
 				localBoard[y][x] = 0;
 		
-		//fill in the appropriate utility values
+		//reset the flag that indicates if a move has been found that decreases the heuristic
+		foundBetterMove = false;
+		
+		//fill in the appropriate heuristic values
 		populateHillValues();
+		
+		PotentialMove bestMove = new PotentialMove();
 
-		//temporary output to test values.  to be removed later
+		//Find the square with the lowest heuristic value.  this should really write the values to an array.  
+		//printing functionality to be removed later
 		String outValue = "";
-		for (int y = 0; y < size-1; y++) {
-			for (int x = 0; x < size-1; x++)
+		int lowestSquareValue = 100;
+		for (int y = 0; y <= size-1; y++) {
+			for (int x = 0; x <= size-1; x++){
 				outValue = outValue + localBoard[y][x] + "|";
+				
+				//find the lowest available place to move provided it isn't already occupied by a queen
+				if ((localBoard[y][x] < lowestSquareValue) && (y != NQueens.queens[x])) {
+					lowestSquareValue = localBoard[y][x];
+					bestMove.xCoordinate = x;
+					bestMove.yCoordinate = y;
+				}
+			}
 			outValue = outValue + "\n";
 		}
 		JOptionPane.showMessageDialog(null, outValue);
+		
+		//Only flag that a better move is available if the lowest square is better than all squares currently occupied by a queen 
+		for (int i = 0; i < size; i++) {
+			if (lowestSquareValue < (localBoard[NQueens.queens[i]][i]))
+				foundBetterMove = true;
+		}
+		
+		//make the move
+		if (foundBetterMove) {
+			NQueens.queens[bestMove.xCoordinate] = bestMove.yCoordinate;
+		}
 	}
 
 	@Override
 	public boolean testCanPerformMove() {
-		// TODO Auto-generated method stub
-		return true;
+		return foundBetterMove;
 	}
 	
 	//the base method that marks attack directions for every queen
-	public static void populateHillValues(){
-		for (int i = 0; i < (size-1); i++){
-			localBoard[NQueens.queens[i]][i] = 100; //some dummy impossibly high value
-			setSquareValues(testDirection.UPLEFT, i, NQueens.queens[i]);
-			setSquareValues(testDirection.UPRIGHT, i, NQueens.queens[i]);
-			setSquareValues(testDirection.DOWNLEFT, i, NQueens.queens[i]);
-			setSquareValues(testDirection.DOWNRIGHT, i, NQueens.queens[i]);
-			setSquareValues(testDirection.LEFT, i, NQueens.queens[i]);
-			setSquareValues(testDirection.RIGHT, i, NQueens.queens[i]);
+	public void populateHillValues(){
+		for (int i = 0; i <= (size-1); i++){
+			localBoard[NQueens.queens[i]][i] += 1; //some dummy, impossibly high value for squares that current have a queen
+			setSquareValues(testDirection.UPLEFT, i, NQueens.queens[i], false);
+			setSquareValues(testDirection.UPRIGHT, i, NQueens.queens[i], false);
+			setSquareValues(testDirection.DOWNLEFT, i, NQueens.queens[i], false);
+			setSquareValues(testDirection.DOWNRIGHT, i, NQueens.queens[i], false);
+			setSquareValues(testDirection.LEFT, i, NQueens.queens[i], false);
+			setSquareValues(testDirection.RIGHT, i, NQueens.queens[i], false);
+			setSquareValues(testDirection.DOWN, i, NQueens.queens[i], false);
+			setSquareValues(testDirection.UP, i, NQueens.queens[i], false);
 		}
 	}
 
 	//procedure that increments individual squares that can be attacked by a queen
-	public static void setSquareValues(testDirection direction, int x, int y){
+	public void setSquareValues(testDirection direction, int x, int y, boolean incrementSquare){
 		if ((x >= 0) && (x < size) && (y>= 0) && (y < size)){
-			localBoard[y][x]++;
+			if (incrementSquare)
+				localBoard[y][x]++;
 			int newX = x;
 			int newY = y;
 			switch (direction){
@@ -88,7 +123,7 @@ public class AIModelHillClimb extends AIModel {
 			default:
 				break;
 			}
-			setSquareValues(direction, newX, newY);
+			setSquareValues(direction, newX, newY, true);
 		}
 	}
 

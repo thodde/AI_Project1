@@ -9,7 +9,6 @@ import java.util.Random;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 public class NQueens {
@@ -22,12 +21,13 @@ public class NQueens {
 		int completions = 0;
 		Board board = new Board(size);
 		queens = new int[size];
-		JPanel squares[][] = board.getSquares();
+		//JPanel squares[][] = board.getSquares();
 
 		// temporarily disabled while I worked on the core application code 
 		//setTimer();
 
-		initiallyPlaceQueens(squares, size, queens);
+		initiallyPlaceQueens();
+		redrawScreen(board);
 		AIModel myAIModel = new AIModelHillClimb();
 		
 		//eventually this can be used to repeat testing when we have to complete multiple iterations
@@ -36,27 +36,25 @@ public class NQueens {
 		{
 			//do everything required for one move
 			myAIModel.performMove();
-
-			//temporarily exit as the AI model is currently incomplete
-			done = true;
-
 			
 			if (testGameSolved()){ //is it solved?  if so mark as complete and keep going until time is done
 				completions++;
-				initiallyPlaceQueens(squares, size, queens);
+				//initiallyPlaceQueens();
+				//myAIModel = new AIModelHillClimb();
+				done = true;
 			}
 			else if (!myAIModel.testCanPerformMove()){ //stuck, force reset
-				initiallyPlaceQueens(squares, size, queens);
+				//initiallyPlaceQueens(squares);
+				//myAIModel = new AIModelHillClimb();
+				done = true;
 			}
+			redrawScreen(board);
 		}
 
 		//temporary diagnostic output.  to be removed later
 		String outValue = "";
-		for (int i = 0; i < size; i++){
-			outValue = outValue + "(" + i + "," + queens[i] + ") ";
-		}
 		outValue = outValue + " Completions:" + completions;
-		JOptionPane.showMessageDialog(null, outValue);
+		//JOptionPane.showMessageDialog(null, outValue);
 	}
 	
 	/**
@@ -77,13 +75,20 @@ public class NQueens {
 		return size;
 	}
 	
-	public static void initiallyPlaceQueens(JPanel[][] squares, int numberOfQueens, int[] queens) {
+	public static void redrawScreen(Board myBoard) {
+		myBoard.clearQueens();
+	    for (int i = 0; i < size; i++) {
+	    	(myBoard.getSquares())[queens[i]][i].add(new JLabel(new ImageIcon("res/queen.jpg")));
+	    	(myBoard.getSquares())[queens[i]][i].validate();
+	    }
+	}
+		
+	public static void initiallyPlaceQueens() {
 		int randomRow;
 		Random generator = new Random();
 
-	    for (int i = 0; i <= numberOfQueens-1; i++) {
-	    	randomRow = generator.nextInt(numberOfQueens-1);
-	        squares[randomRow][i].add(new JLabel(new ImageIcon("res/queen.jpg")));
+	    for (int i = 0; i <= size-1; i++) {
+	    	randomRow = generator.nextInt(size-1);
 	        queens[i] = randomRow;
 	    }
 	} 
