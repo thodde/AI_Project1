@@ -41,8 +41,9 @@ public class AIModelHillClimb extends AIModel {
 			for (int x = 0; x <= size-1; x++){
 				outValue = outValue + localBoard[y][x] + "|";
 				
-				//find the lowest available place to move provided it isn't already occupied by a queen
-				if ((localBoard[y][x] < lowestSquareValue) && (y != NQueens.queens[x])) {
+				if ((localBoard[y][x] < lowestSquareValue) && //Find the place to move with the lowest attack value
+						(y != NQueens.queens[x]) &&  //and is not already occupied by a queen
+						(localBoard[y][x] < localBoard[NQueens.queens[x]][x])) { //and in fact is better than the currently occupied square
 					lowestSquareValue = localBoard[y][x];
 					bestMove.xCoordinate = x;
 					bestMove.yCoordinate = y;
@@ -72,7 +73,7 @@ public class AIModelHillClimb extends AIModel {
 	//the base method that marks attack directions for every queen
 	public void populateHillValues(){
 		for (int i = 0; i <= (size-1); i++){
-			localBoard[NQueens.queens[i]][i] += 1; //some dummy, impossibly high value for squares that current have a queen
+			localBoard[NQueens.queens[i]][i] += 1; 
 			setSquareValues(testDirection.UPLEFT, i, NQueens.queens[i], false);
 			setSquareValues(testDirection.UPRIGHT, i, NQueens.queens[i], false);
 			setSquareValues(testDirection.DOWNLEFT, i, NQueens.queens[i], false);
