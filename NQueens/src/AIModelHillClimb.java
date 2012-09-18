@@ -10,12 +10,12 @@ public class AIModelHillClimb extends AIModel {
 	int localBoard[][];
 	int size;
 	boolean foundBetterMove;
-	public enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
+	public enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; }
 	
 	public AIModelHillClimb() {
 		//grab the pertinent values from the NQueens board to make future references shorter
 		size = NQueens.size;
-		localBoard = new int[size][size];		
+		localBoard = new int[size][size];
 	}
 	
 	@Override
@@ -51,7 +51,7 @@ public class AIModelHillClimb extends AIModel {
 			}
 			outValue = outValue + "\n";
 		}
-		JOptionPane.showMessageDialog(null, outValue);
+		//JOptionPane.showMessageDialog(null, outValue);
 		
 		//Only flag that a better move is available if the lowest square is better than all squares currently occupied by a queen 
 		for (int i = 0; i < size; i++) {

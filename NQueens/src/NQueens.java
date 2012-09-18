@@ -19,6 +19,7 @@ public class NQueens {
 	public static void main (String[] args) {
 		size = getInput();
 		int completions = 0;
+		int totalGames = 0;
 		Board board = new Board(size);
 		queens = new int[size];
 		//JPanel squares[][] = board.getSquares();
@@ -26,35 +27,39 @@ public class NQueens {
 		// temporarily disabled while I worked on the core application code 
 		//setTimer();
 
-		initiallyPlaceQueens();
-		redrawScreen(board);
-		AIModel myAIModel = new AIModelHillClimb();
-		
-		//eventually this can be used to repeat testing when we have to complete multiple iterations
-		boolean done = false;
-		while (!done)
-		{
-			//do everything required for one move
-			myAIModel.performMove();
-			
-			if (testGameSolved()){ //is it solved?  if so mark as complete and keep going until time is done
-				completions++;
-				//initiallyPlaceQueens();
-				//myAIModel = new AIModelHillClimb();
-				done = true;
-			}
-			else if (!myAIModel.testCanPerformMove()){ //stuck, force reset
-				//initiallyPlaceQueens(squares);
-				//myAIModel = new AIModelHillClimb();
-				done = true;
-			}
+		do {
+			initiallyPlaceQueens();
 			redrawScreen(board);
-		}
-
-		//temporary diagnostic output.  to be removed later
-		String outValue = "";
-		outValue = outValue + " Completions:" + completions;
-		//JOptionPane.showMessageDialog(null, outValue);
+			AIModel myAIModel = new AIModelHillClimb();
+			
+			//eventually this can be used to repeat testing when we have to complete multiple iterations
+			boolean done = false;
+			while (!done)
+			{
+				//do everything required for one move
+				myAIModel.performMove();
+				
+				if (testGameSolved()){ //is it solved?  if so mark as complete and keep going until time is done
+					completions++;
+					totalGames++;
+					//initiallyPlaceQueens();
+					//myAIModel = new AIModelHillClimb();
+					done = true;
+				}
+				else if (!myAIModel.testCanPerformMove()){ //stuck, force reset
+					//initiallyPlaceQueens(squares);
+					//myAIModel = new AIModelHillClimb();
+					totalGames++;
+					done = true;
+				}
+				redrawScreen(board);
+			}
+	
+			//temporary diagnostic output.  to be removed later
+			String outValue = "";
+			outValue = outValue + " Completions:" + completions + "\nTotal Games: " + totalGames;
+			JOptionPane.showMessageDialog(null, outValue);
+		} while (totalGames < 10);
 	}
 	
 	/**
