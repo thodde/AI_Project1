@@ -10,16 +10,22 @@ import java.awt.*;
 
 public class Board {
 
-	private JFrame frame;
+	private JPanel frame;
+	private JFrame masterFrame;
 	private JPanel squares[][];
+	private JLabel attemptLabel, completionLabel, restartLabel;
 	private int size;
 
 	public Board(int size) {
 		this.setSize(size);
 		squares = new JPanel[size][size];
-	    frame = new JFrame(size + " Queens Problem");
-	    frame.setSize(500, 500);
+		masterFrame = new JFrame(size + " Queens Problem");
+		masterFrame.setSize(515, 700);
+		masterFrame.setLayout(null);
+
+	    frame = new JPanel();
 	    frame.setLayout(new GridLayout(size, size));
+	    frame.setSize(500, 500);
 	
 	    for (int i = 0; i < size; i++) {
 	        for (int j = 0; j < size; j++) {
@@ -34,21 +40,45 @@ public class Board {
 	        }
 	    }
 	    
-	    // Get the size of the screen
-	    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-	     
-	    // Determine the new location of the window
-	    int w = frame.getSize().width;
-	    int h = frame.getSize().height;
-	    int x = (dim.width-w)/2;
-	    int y = (dim.height-h)/2;
-	     
+	    Insets insets = masterFrame.getInsets();
+
+	    JLabel tmpLabel = new JLabel("Size: " + size);
+	    masterFrame.add(tmpLabel);
+	    tmpLabel.setBounds(insets.left + 5, insets.top + 505, 200, 20);
+	    tmpLabel.setVisible(true);
+
+	    attemptLabel = new JLabel("Attempts: 0");
+	    masterFrame.add(attemptLabel);
+	    attemptLabel.setBounds(insets.left + 5, insets.top + 530, 200, 20);
+	    attemptLabel.setVisible(true);
+
+	    completionLabel = new JLabel("Completions: 0");
+	    masterFrame.add(completionLabel);
+	    completionLabel.setBounds(insets.left + 5, insets.top + 555, 200, 20);
+	    completionLabel.setVisible(true);
+
+	    restartLabel = new JLabel("Restarts: 0");
+	    masterFrame.add(restartLabel);
+	    restartLabel.setBounds(insets.left + 5, insets.top + 580, 200, 20);
+	    restartLabel.setVisible(true);
+	    
 	    // Move the window
-	    frame.setLocation(x, y);
-	
-	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    masterFrame.add(frame);
 	    frame.setVisible(true);
+	
+	    masterFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    masterFrame.setVisible(true);
 	}
+	
+	public void updateLabels(long attempts, long completions, long restarts){
+		attemptLabel.setText("Attempts: " + attempts);
+		attemptLabel.invalidate();
+		completionLabel.setText("Completions: " + completions);
+		completionLabel.invalidate();
+		restartLabel.setText("Restarts: " + restarts);
+		restartLabel.invalidate();
+	}
+	
 	
 	public void clearQueens() {
 		for (int y = 0; y < size; y++)

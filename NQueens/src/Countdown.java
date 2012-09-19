@@ -7,6 +7,7 @@
 import java.awt.event.*;
 import javax.swing.*;
 
+
 public class Countdown {
     private Timer timer;
     private JProgressBar progressBar;
@@ -26,8 +27,8 @@ public class Countdown {
                 progressBar.setValue(counter);
                 if (counter==5) {
                     timer.stop();
+                    NQueens.setCountOver();
                     JOptionPane.showMessageDialog(null, "TIME'S UP!");
-                    System.exit(0);
                 } 
             }
         };

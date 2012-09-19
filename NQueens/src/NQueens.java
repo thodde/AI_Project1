@@ -16,19 +16,66 @@ public class NQueens {
 	public static int size;
 	public static enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
 	public static Board board;
+	private static long completions, attempts, restarts;
+	public static boolean countdownOver;
 	
 	public static void main (String[] args) {
-		int totalIterations = 0;
+//		int totalIterations = 0;
 		size = getInput();
 		board = new Board(size);
 		queens = new int[size];
-		int beamSearchCompletions = 0;
-		int hillClimbCompletions = 0;
+		completions = 0;
+		attempts = 0;
+		restarts = 0;
+//		int beamSearchCompletions = 0;
+//		int hillClimbCompletions = 0;
+		countdownOver = false;
+		setTimer();
 		//JPanel squares[][] = board.getSquares();
 
 		// temporarily disabled while I worked on the core application code 
 		//setTimer();
+		
+		initiallyPlaceQueens();
+		redrawScreen(board);
+		AIModel myAIModel = new AIModelHillClimb();
+		
+		
+		//repeat for multiple board sizes
+		//repeat 100 times.  if 1 successful then successful, if cannot find solution in 5 seconds then failed
+		//you have 5 seconds to find a solution
+		//timer needs to be redone a bit
+		
+		//eventually this can be used to repeat testing when we have to complete multiple iterations
+		boolean done = false;
+		while (!done)
+		{
+			//do everything required for one move
+			myAIModel.performMove();
+			
+			if (testGameSolved()){ //is it solved?  if so mark as complete and keep going until time is done
+				if (completions >= 100)
+					done = true;
+				else {
+					completions++;
+					restarts++;
+					initiallyPlaceQueens();
+					myAIModel = new AIModelHillClimb();
+				}
+			}
+			else if (!myAIModel.testCanPerformMove()){ //stuck, force reset
+				restarts++;
+				initiallyPlaceQueens();
+				myAIModel = new AIModelHillClimb();
+			}
+			redrawScreen(board);
+			board.updateLabels(attempts,  completions,  restarts);
 
+			if (countdownOver)
+				done = true;
+		}
+
+		/*
 		do {
 			initiallyPlaceQueens();
 			redrawScreen(board);
@@ -42,9 +89,14 @@ public class NQueens {
 			beamSearchCompletions = beamSearchProcedure(beamSearchAIModel, beamSearchCompletions);
 			totalIterations++;
 			
-		} while (totalIterations < 10); //this will be changed to 99999999 at some point
+		} while (totalIterations < 10); //this will be changed to 99999999 at some point*/
 	}
 	
+	public static void setCountOver(){
+		countdownOver = true;
+	}
+	
+	/*
 	public static int beamSearchProcedure(AIModel beamSearchAIModel, int completions) {
 		//eventually this can be used to repeat testing when we have to complete multiple iterations
 			boolean done = false;
@@ -103,7 +155,7 @@ public class NQueens {
 		outValue = outValue + " Hill Climbing Completions:" + completions;
 		JOptionPane.showMessageDialog(null, outValue);
 		return completions;
-	}
+	}*/
 	
 	/**
 	 * Makes sure that the number of queens used is greater than 3
@@ -139,6 +191,7 @@ public class NQueens {
 	    	randomRow = generator.nextInt(size-1);
 	        queens[i] = randomRow;
 	    }
+	    attempts++;
 	} 
 
 	public static void setTimer() {
@@ -158,9 +211,9 @@ public class NQueens {
 	public static boolean testGameSolved(){
 		boolean retVal;
 		for (int i = 0; i < (size-1); i++){
-			retVal = (testBoardSquare(testDirection.UPLEFT, i, queens[i]) && testBoardSquare(testDirection.UPRIGHT, i, queens[i]) && 
-					testBoardSquare(testDirection.DOWNLEFT, i, queens[i]) && testBoardSquare(testDirection.DOWNRIGHT, i, queens[i])	&& 
-					testBoardSquare(testDirection.LEFT, i, queens[i]) && testBoardSquare(testDirection.RIGHT, i, queens[i]));
+			retVal = (testBoardSquare(testDirection.UPLEFT, i, queens[i], false) && testBoardSquare(testDirection.UPRIGHT, i, queens[i], false) && 
+					testBoardSquare(testDirection.DOWNLEFT, i, queens[i], false) && testBoardSquare(testDirection.DOWNRIGHT, i, queens[i], false)	&& 
+					testBoardSquare(testDirection.LEFT, i, queens[i], false) && testBoardSquare(testDirection.RIGHT, i, queens[i], false));
 			if (retVal == false)
 				return false;
 		}
@@ -176,9 +229,9 @@ public class NQueens {
 	 * @param y
 	 * @return false if a queen resides on the square, true if there are no queens in this call and any recursive calls.
 	 */
-	public static boolean testBoardSquare(testDirection direction, int x, int y){
+	public static boolean testBoardSquare(testDirection direction, int x, int y, boolean testCurrentSquare){
 		if ((x >= 0) && (x < size) && (y>= 0) && (y < size)){
-			if (queens[x] == y) 
+			if ((queens[x] == y) && testCurrentSquare) 
 				return false;
 			else	{
 				int newX = x;
@@ -215,7 +268,7 @@ public class NQueens {
 				default:
 					break;
 				}
-				return testBoardSquare(direction, newX, newY);
+				return testBoardSquare(direction, newX, newY, true);
 			}
 		}
 		else

@@ -1,5 +1,3 @@
-import javax.swing.JOptionPane;
-
 //import NQueens.testDirection;
 
 class PotentialMove {
@@ -10,12 +8,12 @@ public class AIModelHillClimb extends AIModel {
 	int localBoard[][];
 	int size;
 	boolean foundBetterMove;
-	public enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; }
+	public enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
 	
 	public AIModelHillClimb() {
 		//grab the pertinent values from the NQueens board to make future references shorter
 		size = NQueens.size;
-		localBoard = new int[size][size];
+		localBoard = new int[size][size];		
 	}
 	
 	@Override
