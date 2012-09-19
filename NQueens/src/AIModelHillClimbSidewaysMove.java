@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.Random;
+
+//import javax.swing.JOptionPane;
 
 public class AIModelHillClimbSidewaysMove extends AIModelHillClimb {
 	private int sidewaysMoves;
@@ -6,6 +10,7 @@ public class AIModelHillClimbSidewaysMove extends AIModelHillClimb {
 		super();
 		sidewaysMoves = 0;
 	}
+	
 	
 	public void performMove() {
 		//initialize the local board to zero
@@ -18,43 +23,68 @@ public class AIModelHillClimbSidewaysMove extends AIModelHillClimb {
 		
 		//fill in the appropriate heuristic values
 		populateHillValues();
-		
-		PotentialMove bestMove = new PotentialMove();
+		ArrayList<PotentialMove> myBestList = new ArrayList<PotentialMove>();
 
 		//Find the square with the lowest heuristic value.  this should really write the values to an array.  
-		int lowestSquareValue = 100;
+		int squareDifferential = -1;
+		//String outValue = "";
 		for (int y = 0; y <= size-1; y++) {
 			for (int x = 0; x <= size-1; x++){
-				if ((localBoard[y][x] <= lowestSquareValue) && //Find the place to move with the lowest attack value //!< Only difference here is that lowestSquareValue is <= not <
-						(y != NQueens.queens[x]) &&  //and is not already occupied by a queen
-						(localBoard[y][x] < localBoard[NQueens.queens[x]][x])) { //and in fact is better than the currently occupied square
-					lowestSquareValue = localBoard[y][x];
-					bestMove.xCoordinate = x;
-					bestMove.yCoordinate = y;
-					
-					//here is a recording of the sideways moves
-					if (localBoard[y][x] == lowestSquareValue)
-						sidewaysMoves++;
-					else
-						sidewaysMoves = 0;
+				//outValue = outValue + localBoard[y][x];
+				if (squareDifferential < 0) //lowestSquareFound not found yet 
+				{
+					if ((NQueens.queens[x] != y) && //set if the current square isn't already occupied by a queen
+							(localBoard[NQueens.queens[x]][x] >= localBoard[y][x])) {
+						if (localBoard[y][x] == localBoard[NQueens.queens[x]][x])
+							myBestList.add(new PotentialMove(x, y, true));
+						else
+							myBestList.add(new PotentialMove(x, y, false));
+						squareDifferential = localBoard[NQueens.queens[x]][x] - localBoard[y][x];
+					}
 				}
+				else if ((localBoard[NQueens.queens[x]][x] - localBoard[y][x]) > squareDifferential) { // find the square with the largest differential in value from the queen in the column
+					myBestList.clear();
+					myBestList.add(new PotentialMove(x, y, false));
+					squareDifferential = localBoard[NQueens.queens[x]][x] - localBoard[y][x];
+				}
+				else if (((localBoard[NQueens.queens[x]][x] - localBoard[y][x]) == squareDifferential) && // the differential is equal to the current best differential
+						(NQueens.queens[x] != y)) { // and isn't already occupied by a queen
+					myBestList.add(new PotentialMove(x, y, true));
+				}
+				//else the square is higher, has a queen or isn't marginally better than the current queen's position in the row
+			}
+			//outValue = outValue + "\n";
+		}
+		//JOptionPane.showMessageDialog(null, outValue);
+		
+		if (myBestList.isEmpty())
+			return;
+		
+		int listSize = myBestList.size();
+		PotentialMove bestMove;
+		
+		//grab the non-Sideways moves first
+		for (int i = 0; i < listSize; i++) {
+			if (!(myBestList.get(i).isSideways)) {
+				bestMove = myBestList.get(i);
+				foundBetterMove = true;
+				sidewaysMoves = 0;
+				NQueens.queens[bestMove.xCoordinate] = bestMove.yCoordinate;
+				return;
 			}
 		}
 		
-		//Only flag that a better move is available if the lowest square is better than all squares currently occupied by a queen 
-		for (int i = 0; i < size; i++) {
-			if (lowestSquareValue < (localBoard[NQueens.queens[i]][i]))
-				foundBetterMove = true;
+		if (sidewaysMoves > 20) { // hit 20 consecutive sideways moves, mark as unsolvable
+			return;
 		}
 		
-		if (sidewaysMoves > 20) { //if there have been more than 20 consecutive sideways moves then error out and move on
-			// trouble here is that there is no random detection of available sidways moves, so will continuously restest the same 2 moves.  I should change this
-			foundBetterMove = false;
-		}
+		//all available moves sideways moves, let's select one randomly
+		Random generator = new Random();
+		int randomElement = generator.nextInt(listSize);
 		
-		//make the move
-		if (foundBetterMove) {
-			NQueens.queens[bestMove.xCoordinate] = bestMove.yCoordinate;
-		}
+		bestMove = myBestList.get(randomElement);
+		foundBetterMove = true;
+		sidewaysMoves++;
+		NQueens.queens[bestMove.xCoordinate] = bestMove.yCoordinate;
 	}
 }

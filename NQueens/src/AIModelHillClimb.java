@@ -2,6 +2,16 @@
 
 class PotentialMove {
 	public int xCoordinate, yCoordinate;
+	boolean isSideways;
+	
+	PotentialMove(){
+	}
+	
+	PotentialMove(int newX, int newY, boolean newSideways) {
+		xCoordinate = newX;
+		yCoordinate = newY;
+		isSideways = newSideways;
+	}
 }
 
 public class AIModelHillClimb extends AIModel {
