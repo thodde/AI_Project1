@@ -5,6 +5,11 @@
  * and tries to solve the puzzle. 
  */
 
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Random;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -25,6 +30,23 @@ public class NQueens {
 		completions = 0;
 		attempts = 0;
 		restarts = 0;
+		
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss");
+		Date date = new Date();
+		String logFile;
+		logFile = "Log_" + dateFormat.format(date) + ".txt";
+		board.setLogFile(logFile);
+		PrintWriter outLog;
+		try {
+			outLog = new PrintWriter(new FileWriter(logFile));
+			outLog.println("AI Model\tBoard Size\tAttempts\tTime Outs\tCompletions\tRestarts");
+		}
+		catch (Exception exc)
+		{
+			JOptionPane.showMessageDialog(null, "Error creating log file: " + logFile);
+			return;
+		}
+		
 //		int totalIterations = 0;
 //		int beamSearchCompletions = 0;
 //		int hillClimbCompletions = 0;
@@ -67,7 +89,11 @@ public class NQueens {
 			redrawScreen(board);
 			board.updateLabels(attempts,  completions,  restarts);
 		}
+		//when iterating across multiple board sizes this line below has to be called between each iteration.  the other two lines are called when the program is closing down.
+		outLog.println(myAIModel.getClass() + "\t" + size + "\t" + attempts + "\t" + (attempts - completions) + "\t" + completions + "\t" + restarts);
 
+		outLog.println("Successfully complete");
+		outLog.close();
 		/*
 		do {
 			initiallyPlaceQueens();

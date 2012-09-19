@@ -14,6 +14,7 @@ public class Board {
 	private JFrame masterFrame;
 	private JPanel squares[][];
 	private JLabel attemptLabel, completionLabel, restartLabel;
+	private JLabel logFileLabel;
 	private int size;
 
 	public Board(int size) {
@@ -62,6 +63,11 @@ public class Board {
 	    restartLabel.setBounds(insets.left + 5, insets.top + 580, 200, 20);
 	    restartLabel.setVisible(true);
 	    
+	    logFileLabel = new JLabel("Log File:");
+	    masterFrame.add(logFileLabel);
+	    logFileLabel.setBounds(insets.left + 5, insets.top + 605, 400, 20);
+	    logFileLabel.setVisible(true);
+	    
 	    // Move the window
 	    masterFrame.add(frame);
 	    frame.setVisible(true);
@@ -77,6 +83,10 @@ public class Board {
 		completionLabel.invalidate();
 		restartLabel.setText("Restarts: " + restarts);
 		restartLabel.invalidate();
+	}
+	
+	public void setLogFile(String logName) {
+		logFileLabel.setText("Log File: " + logName);
 	}
 	
 	

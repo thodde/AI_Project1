@@ -11,7 +11,6 @@ public class AIModelHillClimbSidewaysMove extends AIModelHillClimb {
 		sidewaysMoves = 0;
 	}
 	
-	
 	public void performMove() {
 		//initialize the local board to zero
 		for (int x = 0; x <= size-1; x++)
