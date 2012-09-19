@@ -5,9 +5,9 @@ class PotentialMove {
 }
 
 public class AIModelHillClimb extends AIModel {
-	int localBoard[][];
-	int size;
-	boolean foundBetterMove;
+	protected int localBoard[][];
+	protected int size;
+	protected boolean foundBetterMove;
 	public enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
 	
 	public AIModelHillClimb() {
@@ -32,13 +32,9 @@ public class AIModelHillClimb extends AIModel {
 		PotentialMove bestMove = new PotentialMove();
 
 		//Find the square with the lowest heuristic value.  this should really write the values to an array.  
-		//printing functionality to be removed later
-		String outValue = "";
 		int lowestSquareValue = 100;
 		for (int y = 0; y <= size-1; y++) {
 			for (int x = 0; x <= size-1; x++){
-				outValue = outValue + localBoard[y][x] + "|";
-				
 				if ((localBoard[y][x] < lowestSquareValue) && //Find the place to move with the lowest attack value
 						(y != NQueens.queens[x]) &&  //and is not already occupied by a queen
 						(localBoard[y][x] < localBoard[NQueens.queens[x]][x])) { //and in fact is better than the currently occupied square
@@ -47,9 +43,7 @@ public class AIModelHillClimb extends AIModel {
 					bestMove.yCoordinate = y;
 				}
 			}
-			outValue = outValue + "\n";
 		}
-		//JOptionPane.showMessageDialog(null, outValue);
 		
 		//Only flag that a better move is available if the lowest square is better than all squares currently occupied by a queen 
 		for (int i = 0; i < size; i++) {

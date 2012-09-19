@@ -17,62 +17,55 @@ public class NQueens {
 	public static enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
 	public static Board board;
 	private static long completions, attempts, restarts;
-	public static boolean countdownOver;
 	
 	public static void main (String[] args) {
-//		int totalIterations = 0;
 		size = getInput();
 		board = new Board(size);
 		queens = new int[size];
 		completions = 0;
 		attempts = 0;
 		restarts = 0;
+//		int totalIterations = 0;
 //		int beamSearchCompletions = 0;
 //		int hillClimbCompletions = 0;
-		countdownOver = false;
-		setTimer();
-		//JPanel squares[][] = board.getSquares();
+		long elapsedTime;
 
 		// temporarily disabled while I worked on the core application code 
 		//setTimer();
 		
 		initiallyPlaceQueens();
+		long startTime = System.currentTimeMillis();
 		redrawScreen(board);
-		AIModel myAIModel = new AIModelHillClimb();
-		
-		
-		//repeat for multiple board sizes
-		//repeat 100 times.  if 1 successful then successful, if cannot find solution in 5 seconds then failed
-		//you have 5 seconds to find a solution
-		//timer needs to be redone a bit
-		
-		//eventually this can be used to repeat testing when we have to complete multiple iterations
-		boolean done = false;
-		while (!done)
-		{
-			//do everything required for one move
+		AIModel myAIModel = new AIModelHillClimbSidewaysMove();
+		//AIModel myAIModel = new AIModelHillClimb();
+	
+		while (attempts < 100){
 			myAIModel.performMove();
+			elapsedTime = System.currentTimeMillis() - startTime;
 			
-			if (testGameSolved()){ //is it solved?  if so mark as complete and keep going until time is done
-				if (completions >= 100)
-					done = true;
-				else {
-					completions++;
-					restarts++;
-					initiallyPlaceQueens();
-					myAIModel = new AIModelHillClimb();
-				}
+			if (elapsedTime > 5000){
+				attempts++;
+				initiallyPlaceQueens();
+				startTime = System.currentTimeMillis();
+				//myAIModel = new AIModelHillClimb();
+				myAIModel = new AIModelHillClimbSidewaysMove();
+			}
+			else if (testGameSolved()){
+				completions++;
+				attempts++;
+				initiallyPlaceQueens();
+				startTime = System.currentTimeMillis();
+				//myAIModel = new AIModelHillClimb();
+				myAIModel = new AIModelHillClimbSidewaysMove();
 			}
 			else if (!myAIModel.testCanPerformMove()){ //stuck, force reset
 				restarts++;
 				initiallyPlaceQueens();
-				myAIModel = new AIModelHillClimb();
+				//myAIModel = new AIModelHillClimb();
+				myAIModel = new AIModelHillClimbSidewaysMove();
 			}
 			redrawScreen(board);
 			board.updateLabels(attempts,  completions,  restarts);
-
-			if (countdownOver)
-				done = true;
 		}
 
 		/*
@@ -91,11 +84,7 @@ public class NQueens {
 			
 		} while (totalIterations < 10); //this will be changed to 99999999 at some point*/
 	}
-	
-	public static void setCountOver(){
-		countdownOver = true;
-	}
-	
+
 	/*
 	public static int beamSearchProcedure(AIModel beamSearchAIModel, int completions) {
 		//eventually this can be used to repeat testing when we have to complete multiple iterations
@@ -191,7 +180,6 @@ public class NQueens {
 	    	randomRow = generator.nextInt(size-1);
 	        queens[i] = randomRow;
 	    }
-	    attempts++;
 	} 
 
 	public static void setTimer() {

@@ -27,7 +27,6 @@ public class Countdown {
                 progressBar.setValue(counter);
                 if (counter==5) {
                     timer.stop();
-                    NQueens.setCountOver();
                     JOptionPane.showMessageDialog(null, "TIME'S UP!");
                 } 
             }
