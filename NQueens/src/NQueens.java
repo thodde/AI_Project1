@@ -15,13 +15,15 @@ public class NQueens {
 	public static int[] queens;
 	public static int size;
 	public static enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
+	public static Board board;
 	
 	public static void main (String[] args) {
+		int totalIterations = 0;
 		size = getInput();
-		int completions = 0;
-		int totalGames = 0;
-		Board board = new Board(size);
+		board = new Board(size);
 		queens = new int[size];
+		int beamSearchCompletions = 0;
+		int hillClimbCompletions = 0;
 		//JPanel squares[][] = board.getSquares();
 
 		// temporarily disabled while I worked on the core application code 
@@ -30,36 +32,77 @@ public class NQueens {
 		do {
 			initiallyPlaceQueens();
 			redrawScreen(board);
-			AIModel myAIModel = new AIModelHillClimb();
+			AIModel hillClimbAIModel = new AIModelHillClimb();
+			AIModel beamSearchAIModel = new AIModelBeamSearch();
 			
-			//eventually this can be used to repeat testing when we have to complete multiple iterations
+			//The different types of searches can be separated into different loops or something later
+			//so that we can keep track of their metrics in different ways, but for now it's
+			//just easier to test them all at once since nothing fully works yet anyway.
+			hillClimbCompletions = hillClimbProcedure(hillClimbAIModel, hillClimbCompletions);
+			beamSearchCompletions = beamSearchProcedure(beamSearchAIModel, beamSearchCompletions);
+			totalIterations++;
+			
+		} while (totalIterations < 10); //this will be changed to 99999999 at some point
+	}
+	
+	public static int beamSearchProcedure(AIModel beamSearchAIModel, int completions) {
+		//eventually this can be used to repeat testing when we have to complete multiple iterations
 			boolean done = false;
+				
 			while (!done)
 			{
 				//do everything required for one move
-				myAIModel.performMove();
+				beamSearchAIModel.performMove();
 				
 				if (testGameSolved()){ //is it solved?  if so mark as complete and keep going until time is done
 					completions++;
-					totalGames++;
 					//initiallyPlaceQueens();
-					//myAIModel = new AIModelHillClimb();
+					//beamSearchAIModel = new AIModelBeamSearch();
 					done = true;
 				}
-				else if (!myAIModel.testCanPerformMove()){ //stuck, force reset
+				else if (!beamSearchAIModel.testCanPerformMove()){ //stuck, force reset
 					//initiallyPlaceQueens(squares);
-					//myAIModel = new AIModelHillClimb();
-					totalGames++;
+					//beamSearchAIModel = new AIModelBeamSearch();
 					done = true;
 				}
 				redrawScreen(board);
 			}
-	
+				
 			//temporary diagnostic output.  to be removed later
 			String outValue = "";
-			outValue = outValue + " Completions:" + completions + "\nTotal Games: " + totalGames;
+			outValue = outValue + " Beam Search Completions:" + completions;
 			JOptionPane.showMessageDialog(null, outValue);
-		} while (totalGames < 10);
+			return completions;
+	}
+
+	public static int hillClimbProcedure(AIModel hillClimbAIModel, int completions) {
+		//eventually this can be used to repeat testing when we have to complete multiple iterations
+		boolean done = false;
+		
+		while (!done)
+		{
+			//do everything required for one move
+			hillClimbAIModel.performMove();
+			
+			if (testGameSolved()){ //is it solved?  if so mark as complete and keep going until time is done
+				completions++;
+				//initiallyPlaceQueens();
+				//hillClimbAIModel = new AIModelHillClimb();
+				done = true;
+			}
+			else if (!hillClimbAIModel.testCanPerformMove()){ //stuck, force reset
+				//initiallyPlaceQueens(squares);
+				//hillClimbAIModel = new AIModelHillClimb();
+				done = true;
+			}
+			redrawScreen(board);
+		}
+		
+		//temporary diagnostic output.  to be removed later
+		String outValue = "";
+		outValue = outValue + " Hill Climbing Completions:" + completions;
+		JOptionPane.showMessageDialog(null, outValue);
+		return completions;
 	}
 	
 	/**
