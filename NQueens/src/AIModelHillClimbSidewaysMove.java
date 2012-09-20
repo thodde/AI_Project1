@@ -5,10 +5,16 @@ import java.util.Random;
 
 public class AIModelHillClimbSidewaysMove extends AIModelHillClimb {
 	private int sidewaysMoves;
+	final private int MAXSIDEWAYSMOVES;
 	
 	AIModelHillClimbSidewaysMove(){
 		super();
 		sidewaysMoves = 0;
+		MAXSIDEWAYSMOVES = 20;
+	}
+	
+	public String printModelAdditionalInfo() {
+		return "Maximum Sideways Moves: " + MAXSIDEWAYSMOVES;
 	}
 	
 	public void performMove() {
@@ -73,7 +79,7 @@ public class AIModelHillClimbSidewaysMove extends AIModelHillClimb {
 			}
 		}
 		
-		if (sidewaysMoves > 20) { // hit 20 consecutive sideways moves, mark as unsolvable
+		if (sidewaysMoves > MAXSIDEWAYSMOVES) { // hit MAXSIDEWAYSMOVES consecutive sideways moves, mark as unsolvable
 			return;
 		}
 		

@@ -7,4 +7,7 @@ public abstract class AIModel {
 	
 	public abstract void performMove();
 	public abstract boolean testCanPerformMove();
+	public String printModelAdditionalInfo() {
+		return "";
+	}
 }

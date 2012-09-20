@@ -13,40 +13,44 @@ public class Board {
 	private JPanel frame;
 	private JFrame masterFrame;
 	private JPanel squares[][];
-	private JLabel attemptLabel, completionLabel, restartLabel;
-	private JLabel logFileLabel;
+	private JLabel attemptLabel, completionLabel, restartLabel, logFileLabel, sizeLabel;
 	private int size;
 
-	public Board(int size) {
+	public Board(int size, boolean displayChessBoard) {
 		this.setSize(size);
 		squares = new JPanel[size][size];
 		masterFrame = new JFrame(size + " Queens Problem");
 		masterFrame.setSize(515, 700);
 		masterFrame.setLayout(null);
 
-	    frame = new JPanel();
-	    frame.setLayout(new GridLayout(size, size));
-	    frame.setSize(500, 500);
-	
-	    for (int i = 0; i < size; i++) {
-	        for (int j = 0; j < size; j++) {
-	            squares[i][j] = new JPanel();
-	
-	            if ((i + j) % 2 == 0) {
-	                squares[i][j].setBackground(Color.black);
-	            } else {
-	                squares[i][j].setBackground(Color.white);
-	            }   
-	            frame.add(squares[i][j]);
-	        }
-	    }
+		if (displayChessBoard) {
+		    frame = new JPanel();
+		    frame.setLayout(new GridLayout(size, size));
+		    frame.setSize(500, 500);
+		
+		    for (int i = 0; i < size; i++) {
+		        for (int j = 0; j < size; j++) {
+		            squares[i][j] = new JPanel();
+		
+		            if ((i + j) % 2 == 0) {
+		                squares[i][j].setBackground(Color.black);
+		            } else {
+		                squares[i][j].setBackground(Color.white);
+		            }   
+		            frame.add(squares[i][j]);
+		        }
+		    }
+		    
+		    masterFrame.add(frame);
+		    frame.setVisible(true);
+		}
 	    
 	    Insets insets = masterFrame.getInsets();
 
-	    JLabel tmpLabel = new JLabel("Size: " + size);
-	    masterFrame.add(tmpLabel);
-	    tmpLabel.setBounds(insets.left + 5, insets.top + 505, 200, 20);
-	    tmpLabel.setVisible(true);
+	    sizeLabel = new JLabel("Size: " + size);
+	    masterFrame.add(sizeLabel);
+	    sizeLabel.setBounds(insets.left + 5, insets.top + 505, 200, 20);
+	    sizeLabel.setVisible(true);
 
 	    attemptLabel = new JLabel("Attempts: 0");
 	    masterFrame.add(attemptLabel);
@@ -67,16 +71,14 @@ public class Board {
 	    masterFrame.add(logFileLabel);
 	    logFileLabel.setBounds(insets.left + 5, insets.top + 605, 400, 20);
 	    logFileLabel.setVisible(true);
-	    
-	    // Move the window
-	    masterFrame.add(frame);
-	    frame.setVisible(true);
 	
 	    masterFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	    masterFrame.setVisible(true);
 	}
 	
-	public void updateLabels(long attempts, long completions, long restarts){
+	public void updateLabels(long size, long attempts, long completions, long restarts){
+		sizeLabel.setText("Size: " + size);
+		sizeLabel.invalidate();
 		attemptLabel.setText("Attempts: " + attempts);
 		attemptLabel.invalidate();
 		completionLabel.setText("Completions: " + completions);
