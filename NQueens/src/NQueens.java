@@ -209,10 +209,9 @@ public class NQueens {
 	 */
 	private static void refreshAIModel() {
 		//myAIModel = new AIModelGreedySearch();
-		myAIModel = new AIModelHillClimb();
+		//myAIModel = new AIModelHillClimb();
 		//myAIModel = new AIModelHillClimbSidewaysMove();
-		//myAIModel = new AIModelBeamSearch();
-		//myAIModel = new AIModelRecursion();
+		myAIModel = new AIModelBeamSearch();
 	}
 	
 	private static void initializeNewBoardSize(int newSize) {

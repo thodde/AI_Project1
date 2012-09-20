@@ -1,126 +1,172 @@
-import java.io.PrintWriter;
 import java.util.LinkedList;
-import java.util.List;
 
 public class AIModelBeamSearch extends AIModel {
-	protected int localBoard[][];
-	protected int size;
+	private boolean initialRunPerformed;
 	protected boolean foundBetterMove;
 	protected long numberOfAttackingQueens;
-	protected LinkedList<int[][]> solutionsList;
+	
+	protected LinkedList<BoardConfiguration> solutionsList;
+	private int size;
+	
 	public enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
 	
 	public AIModelBeamSearch() {
-		//grab the pertinent values from the NQueens board to make future references shorter
-		size = NQueens.size;
+		solutionsList = new LinkedList<BoardConfiguration>();
+		initialRunPerformed = false;
 		numberOfAttackingQueens = 0;
-		localBoard = new int[size][size];
-		solutionsList = new LinkedList<int[][]>();
-	}
-	
-	public long getNumberOfAttackingQueens() {
-		long retVal = 0;
-		
-		for (int x = 0; x <= size-1; x++)
-			for (int y = 0; y <= size-1; y++)
-				localBoard[y][x] = 0;
-		
-		populateHillValues();
-
-		for (int i = 0; i < size; i++) {
-			retVal = retVal + localBoard[NQueens.queens[i]][i] - 1;
-		}
-		return retVal;
-	}
-	
-	public void writeOutlocalBoard(PrintWriter outLog) {
-		String retVal;
-		
-		for (int y = 0; y <= size-1; y++) {
-			retVal = "";
-			for (int x = 0; x <= size-1; x++){
-				if (NQueens.queens[x] == y)
-					retVal = retVal + 'Q' + localBoard[y][x];
-				else
-					retVal = retVal + localBoard[y][x];
-				retVal = retVal + "|";
-			}
-			outLog.println(retVal);
-		}
-		outLog.println("");
 	}
 	
 	@Override
 	public void performMove() {
-		//Fill the solutions list with several randomly generated chess boards
-		for (int i = 0; i < size; i ++) {
-			for (int x = 0; x < size; x++) {	//initialize the local board to zero
-				for (int y = 0; y < size; y++) {
-					localBoard[y][x] = 0;
-				}
-			}
-			solutionsList.add(localBoard);
-		}
-		
-		//reset the flag that indicates if a move has been found that decreases the heuristic
 		foundBetterMove = false;
 		
-		//fill in the appropriate heuristic values
-		populateHillValues();
-		
-		PotentialMove bestMove = new PotentialMove();
-
-		//Find the square with the lowest heuristic value.  this should really write the values to an array.  
-		int lowestSquareValue = size+1;
-		for (int y = 0; y < size; y++) {
-			for (int x = 0; x < size; x++){
-				if ((localBoard[y][x] < lowestSquareValue) && //Find the place to move with the lowest attack value
-						(y != NQueens.queens[x]) &&  //and is not already occupied by a queen
-						(localBoard[y][x] < localBoard[NQueens.queens[x]][x])) { //and in fact is better than the currently occupied square
-					lowestSquareValue = localBoard[y][x];
-					bestMove.xCoordinate = x;
-					bestMove.yCoordinate = y;
-				}
+		if(solutionsList.isEmpty()) {
+			if(!initialRunPerformed) {
+				size = NQueens.size;
+				BoardConfiguration tmpBoard = new BoardConfiguration(size);
+				tmpBoard.setQueenList(NQueens.queens);
+				initialRunPerformed = true;
+			}
+			else {
+				return;
 			}
 		}
 		
-		//Only flag that a better move is available if the lowest square is better than all squares currently occupied by a queen 
-		for (int i = 0; i < size; i++) {
-			if (lowestSquareValue < localBoard[NQueens.queens[i]][i])
-				foundBetterMove = true;
-		}
+		int localBoard[][] = new int[size][size];
+		LinkedList<BoardConfiguration> newBoardList = new LinkedList<BoardConfiguration>();
+		LinkedList<PotentialMove> bestMoveList;
 		
-		//make the move
-		if (foundBetterMove) {
-			NQueens.queens[bestMove.xCoordinate] = bestMove.yCoordinate;
+		while(!solutionsList.isEmpty()) {
+			BoardConfiguration tempBoard = solutionsList.remove(0);
+			bestMoveList = new LinkedList<PotentialMove>();
+			
+			for(int i = 0; i < size; i++) {
+				for(int j = 0; j < size; j++) {
+					localBoard[j][i] = 0;
+				}
+			}
+			
+			populateHillValues(localBoard, tempBoard.queens);
+			
+			int squareDifferential = -1;
+			for(int j = 0; j < size; j++) {
+				for(int i = 0; i < size; i++) {
+					if(squareDifferential < 0) {
+						if((tempBoard.queens[i] != j) && (localBoard[tempBoard.queens[i]][i] >= localBoard[j][i])) {
+							if(localBoard[j][i] == localBoard[tempBoard.queens[i]][i])
+								bestMoveList.add(new PotentialMove(i, j, true));
+							else
+								bestMoveList.add(new PotentialMove(i, j, false));
+							squareDifferential = localBoard[tempBoard.queens[i]][i] - localBoard[j][i];
+						}
+					}
+					else if((localBoard[tempBoard.queens[i]][i] - localBoard[j][i]) > squareDifferential) {
+						bestMoveList.clear();
+						bestMoveList.add(new PotentialMove(i, j, false));
+						squareDifferential = localBoard[tempBoard.queens[i]][i] - localBoard[j][i];
+					}
+					else if(((localBoard[tempBoard.queens[i]][i] - localBoard[j][i]) == squareDifferential) && 
+							(tempBoard.queens[i] != j)) {
+						bestMoveList.add(new PotentialMove(i, j, true));
+					}
+				}
+			
+				PotentialMove tmpMove;
+				while(!bestMoveList.isEmpty()) {
+					foundBetterMove = true;
+					tmpMove = bestMoveList.remove(0);
+					BoardConfiguration newBoard = tempBoard.clone();
+					newBoard.queens[tmpMove.xCoordinate] = tmpMove.yCoordinate;
+					
+					if(testGameSolved(newBoard.queens)) {
+						for(int i = 0; i < size; i++) {
+							NQueens.queens[i] = newBoard.queens[i];
+						}
+						//stop here, solution found
+						return;
+					}
+					newBoardList.add(newBoard);
+				}
+			}
+			solutionsList = newBoardList;
 		}
 	}
-
-	@Override
-	public boolean testCanPerformMove() {
-		return foundBetterMove;
+	
+	public boolean testGameSolved(int queens[]) {
+		boolean retVal;
+		for (int i = 0; i < size; i++){
+			retVal = (testBoardSquare(testDirection.UPLEFT, i, queens[i], false, queens) && testBoardSquare(testDirection.UPRIGHT, i, queens[i], false, queens) && 
+					testBoardSquare(testDirection.DOWNLEFT, i, queens[i], false, queens) && testBoardSquare(testDirection.DOWNRIGHT, i, queens[i], false, queens) && 
+					testBoardSquare(testDirection.LEFT, i, queens[i], false, queens) && testBoardSquare(testDirection.RIGHT, i, queens[i], false, queens));
+			if (retVal == false)
+				return false;
+		}
+		return true;
+	}
+	
+	public boolean testBoardSquare(testDirection direction, int x, int y, boolean testCurrentSquare, int queens[]){
+		if ((x >= 0) && (x < size) && (y>= 0) && (y < size)){
+			if ((queens[x] == y) && testCurrentSquare) 
+				return false;
+			else	{
+				int newX = x;
+				int newY = y;
+				switch (direction){
+				case UPLEFT:
+					newX--;
+					newY--;
+					break;
+				case UPRIGHT:
+					newX++;
+					newY--;
+					break;
+				case DOWNLEFT:
+					newX--;
+					newY++;
+					break;
+				case DOWNRIGHT:
+					newX++;
+					newY++;
+					break;
+				case UP:
+					newY--;
+					break;
+				case DOWN:
+					newY++;
+					break;
+				case RIGHT:
+					newX++;
+					break;
+				case LEFT:
+					newX--;
+					break;
+				default:
+					break;
+				}
+				return testBoardSquare(direction, newX, newY, true, queens);
+			}
+		}
+		else
+			return true;
 	}
 	
 	//the base method that marks attack directions for every queen
-	public void populateHillValues(){
-		for (int j = 0; j < size; j++) {
-			for (int i = 0; i <= (size-1); i++){
-				localBoard[NQueens.queens[i]][i] += 1; 
-				setSquareValues(testDirection.UPLEFT, i, NQueens.queens[i], false);
-				setSquareValues(testDirection.UPRIGHT, i, NQueens.queens[i], false);
-				setSquareValues(testDirection.DOWNLEFT, i, NQueens.queens[i], false);
-				setSquareValues(testDirection.DOWNRIGHT, i, NQueens.queens[i], false);
-				setSquareValues(testDirection.LEFT, i, NQueens.queens[i], false);
-				setSquareValues(testDirection.RIGHT, i, NQueens.queens[i], false);
-				setSquareValues(testDirection.DOWN, i, NQueens.queens[i], false);
-				setSquareValues(testDirection.UP, i, NQueens.queens[i], false);
-			}
-			solutionsList.add(localBoard);
+	public void populateHillValues(int localBoard[][], int queensList[]){
+		for (int i = 0; i <= (size-1); i++){
+			localBoard[NQueens.queens[i]][i] += 1; 
+			setSquareValues(testDirection.UPLEFT, i, NQueens.queens[i], false, localBoard);
+			setSquareValues(testDirection.UPRIGHT, i, NQueens.queens[i], false, localBoard);
+			setSquareValues(testDirection.DOWNLEFT, i, NQueens.queens[i], false, localBoard);
+			setSquareValues(testDirection.DOWNRIGHT, i, NQueens.queens[i], false, localBoard);
+			setSquareValues(testDirection.LEFT, i, NQueens.queens[i], false, localBoard);
+			setSquareValues(testDirection.RIGHT, i, NQueens.queens[i], false, localBoard);
+			setSquareValues(testDirection.DOWN, i, NQueens.queens[i], false, localBoard);
+			setSquareValues(testDirection.UP, i, NQueens.queens[i], false, localBoard);
 		}
 	}
-
+	
 	//procedure that increments individual squares that can be attacked by a queen
-	public void setSquareValues(testDirection direction, int x, int y, boolean incrementSquare){
+	public void setSquareValues(testDirection direction, int x, int y, boolean incrementSquare, int localBoard[][]){
 		if ((x >= 0) && (x < size) && (y>= 0) && (y < size)){
 			if (incrementSquare)
 				localBoard[y][x]++;
@@ -158,8 +204,12 @@ public class AIModelBeamSearch extends AIModel {
 			default:
 				break;
 			}
-			setSquareValues(direction, newX, newY, true);
+			setSquareValues(direction, newX, newY, true, localBoard);
 		}
 	}
-
+	
+	@Override
+	public boolean testCanPerformMove() {
+		return foundBetterMove;
+	}
 }

@@ -1,26 +1,5 @@
 import java.util.ArrayList;
 
-class BoardConfiguration {
-	public int queens[];
-	private int localSize;
-
-	BoardConfiguration(int newSize){
-		localSize = newSize;
-		queens = new int[newSize];
-	}
-	
-	public BoardConfiguration clone(){
-		BoardConfiguration newBoard = new BoardConfiguration(localSize);
-		newBoard.setQueenList(queens);
-		return newBoard;
-	}
-	
-	public void setQueenList(int newQL[]){
-		for (int i = 0; i < localSize; i++)
-			queens[i] = newQL[i];
-	}
-}
-
 public class AIModelGreedySearch extends AIModel {
 	private boolean initialRunPerformed;
 	protected boolean foundBetterMove;
