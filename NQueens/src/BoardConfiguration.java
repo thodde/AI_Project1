@@ -3,10 +3,12 @@ public class BoardConfiguration {
 	public int queens[];
 	private int localSize;
 	public long queenConfiguration;
+	public long attackingQueens;
 	
 	BoardConfiguration(int newSize) {
 		localSize = newSize;
 		queens = new int[newSize];
+		attackingQueens = newSize * newSize;
 	}
 	
 	public BoardConfiguration clone() {

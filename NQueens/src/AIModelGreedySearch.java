@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class AIModelGreedySearch extends AIModel {
 	private boolean initialRunPerformed;
@@ -7,10 +7,10 @@ public class AIModelGreedySearch extends AIModel {
 	public enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
 	
 	private int size;
-	private ArrayList<BoardConfiguration> myBoards;
+	private LinkedList<BoardConfiguration> myBoards;
 	
 	AIModelGreedySearch(){
-		myBoards = new ArrayList<BoardConfiguration>();
+		myBoards = new LinkedList<BoardConfiguration>();
 		numberOfAttackingQueens = 0;
 		initialRunPerformed = false;
 	}
@@ -23,6 +23,7 @@ public class AIModelGreedySearch extends AIModel {
 				size = NQueens.size;
 				BoardConfiguration tmpBoard = new BoardConfiguration(size);
 				tmpBoard.setQueenList(NQueens.queens);
+				myBoards.push(tmpBoard);
 				initialRunPerformed = true;
 			}
 			else {
@@ -30,14 +31,16 @@ public class AIModelGreedySearch extends AIModel {
 				return;
 			}
 		}
+		int maxBoardsSaved = size;
 		
 		int localBoard[][] = new int[size][size];
-		ArrayList<BoardConfiguration> newBoardList = new ArrayList<BoardConfiguration>();
-		ArrayList<PotentialMove> bestMoveList;
+		LinkedList<BoardConfiguration> newBoardList = new LinkedList<BoardConfiguration>();
+		LinkedList<PotentialMove> bestMoveList;
 		
-		while(!myBoards.isEmpty()){
-			BoardConfiguration tempBoard = myBoards.remove(0);
-			bestMoveList = new ArrayList<PotentialMove>();
+		//only consider more if I'm below the maximum number of boards I can use.  In reality this should drop the lowest boards
+		while((!myBoards.isEmpty()) && (newBoardList.size() < maxBoardsSaved)){
+			BoardConfiguration tempBoard = myBoards.pop();
+			bestMoveList = new LinkedList<PotentialMove>();
 			
 			for (int x = 0; x < size; x++)
 				for (int y = 0; y < size; y++)
@@ -53,20 +56,20 @@ public class AIModelGreedySearch extends AIModel {
 						if ((tempBoard.queens[x] != y) && //set if the current square isn't already occupied by a queen
 								(localBoard[tempBoard.queens[x]][x] >= localBoard[y][x])) {
 							if (localBoard[y][x] == localBoard[tempBoard.queens[x]][x])
-								bestMoveList.add(new PotentialMove(x, y, true));
+								bestMoveList.push(new PotentialMove(x, y, true));
 							else
-								bestMoveList.add(new PotentialMove(x, y, false));
+								bestMoveList.push(new PotentialMove(x, y, false));
 							squareDifferential = localBoard[tempBoard.queens[x]][x] - localBoard[y][x];
 						}
 					}
 					else if ((localBoard[tempBoard.queens[x]][x] - localBoard[y][x]) > squareDifferential) { // find the square with the largest differential in value from the queen in the column
 						bestMoveList.clear();
-						bestMoveList.add(new PotentialMove(x, y, false));
+						bestMoveList.push(new PotentialMove(x, y, false));
 						squareDifferential = localBoard[tempBoard.queens[x]][x] - localBoard[y][x];
 					}
 					else if (((localBoard[tempBoard.queens[x]][x] - localBoard[y][x]) == squareDifferential) && // the differential is equal to the current best differential
 							(tempBoard.queens[x] != y)) { // and isn't already occupied by a queen
-						bestMoveList.add(new PotentialMove(x, y, true));
+						bestMoveList.push(new PotentialMove(x, y, true));
 					}
 					//else the square is higher, has a queen or isn't marginally better than the current queen's position in the row
 				}
@@ -74,7 +77,7 @@ public class AIModelGreedySearch extends AIModel {
 				PotentialMove tmpMove;				
 				while(!bestMoveList.isEmpty()) { //cycle through all potential moves and "play" them
 					foundBetterMove = true;
-					tmpMove = bestMoveList.remove(0);
+					tmpMove = bestMoveList.pop();
 					BoardConfiguration newBoard = tempBoard.clone();
 					newBoard.queens[tmpMove.xCoordinate] = tmpMove.yCoordinate;
 
@@ -88,11 +91,11 @@ public class AIModelGreedySearch extends AIModel {
 
 					//if the queen configuration has already been loaded, then don't add it in
 					if (!newBoardList.contains(newBoard))
-						newBoardList.add(newBoard);
+						newBoardList.push(newBoard);
 				}
 			}
-			myBoards = newBoardList;
 		}
+		myBoards = newBoardList;
 	}
 	
 	public boolean testGameSolved(int queens[]){
@@ -156,14 +159,14 @@ public class AIModelGreedySearch extends AIModel {
 	public void populateHillValues(int localBoard[][], int queenList[]){
 		for (int i = 0; i <= (size-1); i++){
 			localBoard[queenList[i]][i] += 1; 
-			setSquareValues(testDirection.UPLEFT, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.UPRIGHT, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.DOWNLEFT, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.DOWNRIGHT, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.LEFT, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.RIGHT, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.DOWN, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.UP, i, NQueens.queens[i], false, localBoard);
+			setSquareValues(testDirection.UPLEFT, i, queenList[i], false, localBoard);
+			setSquareValues(testDirection.UPRIGHT, i, queenList[i], false, localBoard);
+			setSquareValues(testDirection.DOWNLEFT, i, queenList[i], false, localBoard);
+			setSquareValues(testDirection.DOWNRIGHT, i, queenList[i], false, localBoard);
+			setSquareValues(testDirection.LEFT, i, queenList[i], false, localBoard);
+			setSquareValues(testDirection.RIGHT, i, queenList[i], false, localBoard);
+			setSquareValues(testDirection.DOWN, i, queenList[i], false, localBoard);
+			setSquareValues(testDirection.UP, i, queenList[i], false, localBoard);
 		}
 	}
 
