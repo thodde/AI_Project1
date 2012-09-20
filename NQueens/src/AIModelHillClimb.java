@@ -1,4 +1,4 @@
-//import NQueens.testDirection;
+import java.io.PrintWriter;
 
 class PotentialMove {
 	public int xCoordinate, yCoordinate;
@@ -18,19 +18,53 @@ public class AIModelHillClimb extends AIModel {
 	protected int localBoard[][];
 	protected int size;
 	protected boolean foundBetterMove;
+	protected long numberOfAttackingQueens;
 	public enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
 	
 	public AIModelHillClimb() {
 		//grab the pertinent values from the NQueens board to make future references shorter
 		size = NQueens.size;
+		numberOfAttackingQueens = 0;
 		localBoard = new int[size][size];		
+	}
+	
+	public long getNumberOfAttackingQueens() {
+		long retVal = 0;
+		
+		for (int x = 0; x <= size-1; x++)
+			for (int y = 0; y <= size-1; y++)
+				localBoard[y][x] = 0;
+		
+		populateHillValues();
+
+		for (int i = 0; i < size; i++) {
+			retVal = retVal + localBoard[NQueens.queens[i]][i] - 1;
+		}
+		return retVal;
+	}
+	
+	public void writeOutlocalBoard(PrintWriter outLog) {
+		String retVal;
+		
+		for (int y = 0; y <= size-1; y++) {
+			retVal = "";
+			for (int x = 0; x <= size-1; x++){
+				if (NQueens.queens[x] == y)
+					retVal = retVal + 'Q' + localBoard[y][x];
+				else
+					retVal = retVal + localBoard[y][x];
+				retVal = retVal + "|";
+			}
+			outLog.println(retVal);
+		}
+		outLog.println("");
 	}
 	
 	@Override
 	public void performMove() {
 		//initialize the local board to zero
-		for (int x = 0; x <= size-1; x++)
-			for (int y = 0; y <= size-1; y++)
+		for (int x = 0; x < size; x++)
+			for (int y = 0; y < size; y++)
 				localBoard[y][x] = 0;
 		
 		//reset the flag that indicates if a move has been found that decreases the heuristic
@@ -42,9 +76,9 @@ public class AIModelHillClimb extends AIModel {
 		PotentialMove bestMove = new PotentialMove();
 
 		//Find the square with the lowest heuristic value.  this should really write the values to an array.  
-		int lowestSquareValue = 100;
-		for (int y = 0; y <= size-1; y++) {
-			for (int x = 0; x <= size-1; x++){
+		int lowestSquareValue = size+1;
+		for (int y = 0; y < size; y++) {
+			for (int x = 0; x < size; x++){
 				if ((localBoard[y][x] < lowestSquareValue) && //Find the place to move with the lowest attack value
 						(y != NQueens.queens[x]) &&  //and is not already occupied by a queen
 						(localBoard[y][x] < localBoard[NQueens.queens[x]][x])) { //and in fact is better than the currently occupied square
@@ -57,7 +91,7 @@ public class AIModelHillClimb extends AIModel {
 		
 		//Only flag that a better move is available if the lowest square is better than all squares currently occupied by a queen 
 		for (int i = 0; i < size; i++) {
-			if (lowestSquareValue < (localBoard[NQueens.queens[i]][i]))
+			if (lowestSquareValue < localBoard[NQueens.queens[i]][i])
 				foundBetterMove = true;
 		}
 		

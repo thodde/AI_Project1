@@ -23,6 +23,7 @@ public class NQueens {
 	public static Board board;
 	private static long completions, attempts, restarts;
 	public static boolean displayChessBoard;
+	private static AIModel myAIModel;
 	
 	public static void main (String[] args) {
 		// set this to true to show the chess board graphic.  If setting above 20 queens the board is forced hidden
@@ -38,7 +39,7 @@ public class NQueens {
 		PrintWriter outLog;
 		try {
 			outLog = new PrintWriter(new FileWriter(logFile));
-			outLog.println("AI Model\tAdditional Details\tBoard Size\tAttempts\tTime Outs\tCompletions\tRestarts");
+			outLog.println("AI Model\tAdditional Details\tBoard Size\tAttempts\tTime Outs\tCompletions\tRestarts\tAverage Attacking Queens\tAverage Completion Time (ms)");
 		}
 		catch (Exception exc)
 		{
@@ -50,47 +51,54 @@ public class NQueens {
 //		int beamSearchCompletions = 0;
 //		int hillClimbCompletions = 0;
 		long elapsedTime, startTime;
+		long completionTimes, numberOfAttackingQueens;
 		
 		while ((attempts == 0) || (completions > 24)) { //repeatedly iterate through until completion rate is less than 25
 			initializeNewBoardSize(currentBoardSize);
 			initiallyPlaceQueens();
 			startTime = System.currentTimeMillis();
+			completionTimes = 0;
+			numberOfAttackingQueens = 0;
 			
 			redrawScreen(board);
-			AIModel myAIModel = new AIModelHillClimbSidewaysMove();
-			//AIModel myAIModel = new AIModelHillClimb();
+			refreshAIModel();
 		
 			while (attempts < 100){
 				myAIModel.performMove();
 				elapsedTime = System.currentTimeMillis() - startTime;
 				
-				if (elapsedTime > 5000){
+				if (elapsedTime > 5000){ // timed out
 					attempts++;
+					numberOfAttackingQueens += myAIModel.getNumberOfAttackingQueens();
 					initiallyPlaceQueens();
 					startTime = System.currentTimeMillis();
-					//myAIModel = new AIModelHillClimb();
-					myAIModel = new AIModelHillClimbSidewaysMove();
+					refreshAIModel();
 				}
-				else if (testGameSolved()){
+				else if (testGameSolved()){ //game completed
 					completions++;
 					attempts++;
+					numberOfAttackingQueens += myAIModel.getNumberOfAttackingQueens();
 					initiallyPlaceQueens();
+					completionTimes += elapsedTime;
 					startTime = System.currentTimeMillis();
-					//myAIModel = new AIModelHillClimb();
-					myAIModel = new AIModelHillClimbSidewaysMove();
+					refreshAIModel();
 				}
 				else if (!myAIModel.testCanPerformMove()){ //stuck, force reset
 					restarts++;
 					initiallyPlaceQueens();
-					//myAIModel = new AIModelHillClimb();
-					myAIModel = new AIModelHillClimbSidewaysMove();
+					refreshAIModel();
 				}
 				redrawScreen(board);
 				board.updateLabels(size, attempts,  completions,  restarts);
 			}
 			//output to log before board size is increased
-			outLog.println(myAIModel.getClass() + "\t" + myAIModel.printModelAdditionalInfo() + "\t" + size + "\t" + attempts + "\t" + (attempts - completions) + "\t" + completions + "\t" + restarts);
-
+			outLog.print(myAIModel.getClass() + "\t" + myAIModel.printModelAdditionalInfo() + "\t" + size + "\t" + attempts + "\t" + (attempts - completions) + "\t" + completions + "\t" + restarts + "\t" + numberOfAttackingQueens / attempts  + "\t");
+			if (completions == 0 )
+				outLog.println("N/A");
+			else
+				outLog.println(completionTimes / completions);
+			outLog.flush();
+			
 			currentBoardSize = currentBoardSize * 2;
 		}
 
@@ -111,6 +119,14 @@ public class NQueens {
 			totalIterations++;
 			
 		} while (totalIterations < 10); //this will be changed to 99999999 at some point*/
+	}
+	
+	/**
+	 * Use this as a one stop location to reset the AI model.  Reduces the chance that multiple AI models will be accidentally combined 
+	 */
+	private static void refreshAIModel() {
+		myAIModel = new AIModelHillClimb();
+		//myAIModel = new AIModelHillClimbSidewaysMove();
 	}
 	
 	private static void initializeNewBoardSize(int newSize) {
@@ -151,36 +167,6 @@ public class NQueens {
 			JOptionPane.showMessageDialog(null, outValue);
 			return completions;
 	}
-
-	public static int hillClimbProcedure(AIModel hillClimbAIModel, int completions) {
-		//eventually this can be used to repeat testing when we have to complete multiple iterations
-		boolean done = false;
-		
-		while (!done)
-		{
-			//do everything required for one move
-			hillClimbAIModel.performMove();
-			
-			if (testGameSolved()){ //is it solved?  if so mark as complete and keep going until time is done
-				completions++;
-				//initiallyPlaceQueens();
-				//hillClimbAIModel = new AIModelHillClimb();
-				done = true;
-			}
-			else if (!hillClimbAIModel.testCanPerformMove()){ //stuck, force reset
-				//initiallyPlaceQueens(squares);
-				//hillClimbAIModel = new AIModelHillClimb();
-				done = true;
-			}
-			redrawScreen(board);
-		}
-		
-		//temporary diagnostic output.  to be removed later
-		String outValue = "";
-		outValue = outValue + " Hill Climbing Completions:" + completions;
-		JOptionPane.showMessageDialog(null, outValue);
-		return completions;
-	}*/
 	
 	/**
 	 * Makes sure that the number of queens used is greater than 3
@@ -239,9 +225,9 @@ public class NQueens {
 	 */
 	public static boolean testGameSolved(){
 		boolean retVal;
-		for (int i = 0; i < (size-1); i++){
+		for (int i = 0; i < size; i++){
 			retVal = (testBoardSquare(testDirection.UPLEFT, i, queens[i], false) && testBoardSquare(testDirection.UPRIGHT, i, queens[i], false) && 
-					testBoardSquare(testDirection.DOWNLEFT, i, queens[i], false) && testBoardSquare(testDirection.DOWNRIGHT, i, queens[i], false)	&& 
+					testBoardSquare(testDirection.DOWNLEFT, i, queens[i], false) && testBoardSquare(testDirection.DOWNRIGHT, i, queens[i], false) && 
 					testBoardSquare(testDirection.LEFT, i, queens[i], false) && testBoardSquare(testDirection.RIGHT, i, queens[i], false));
 			if (retVal == false)
 				return false;
