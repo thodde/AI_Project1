@@ -27,7 +27,8 @@ public class AIModelHillClimb extends AIModel {
 		numberOfAttackingQueens = 0;
 		localBoard = new int[size][size];		
 	}
-	
+
+	/*
 	public long getNumberOfAttackingQueens() {
 		long retVal = 0;
 		
@@ -42,6 +43,7 @@ public class AIModelHillClimb extends AIModel {
 		}
 		return retVal;
 	}
+	*/
 	
 	public void writeOutlocalBoard(PrintWriter outLog) {
 		String retVal;

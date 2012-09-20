@@ -50,7 +50,13 @@ public class NQueens {
 		long elapsedTime, startTime;
 		long completionTimes, numberOfAttackingQueens;
 		
-		while ((attempts == 0) || (completions > 24)) { //repeatedly iterate through until completion rate is less than 25
+		//used only for binary search
+		/*
+		int priorSize = currentBoardSize;
+		currentBoardSize = currentBoardSize + currentBoardSize / 2;
+		*/
+		
+		while ((attempts == 0) || (completions > (attempts * 0.25))) { //repeatedly iterate through until completion rate is less than 25
 			initializeNewBoardSize(currentBoardSize);
 			initiallyPlaceQueens();
 			startTime = System.currentTimeMillis();
@@ -66,7 +72,7 @@ public class NQueens {
 				
 				if (elapsedTime > 5000){ // timed out
 					attempts++;
-					numberOfAttackingQueens += myAIModel.getNumberOfAttackingQueens();
+					numberOfAttackingQueens += getNumberOfAttackingQueens();
 					initiallyPlaceQueens();
 					startTime = System.currentTimeMillis();
 					refreshAIModel();
@@ -74,7 +80,7 @@ public class NQueens {
 				else if (testGameSolved()){ //game completed
 					completions++;
 					attempts++;
-					numberOfAttackingQueens += myAIModel.getNumberOfAttackingQueens();
+					numberOfAttackingQueens += getNumberOfAttackingQueens();
 					initiallyPlaceQueens();
 					completionTimes += elapsedTime;
 					startTime = System.currentTimeMillis();
@@ -96,6 +102,23 @@ public class NQueens {
 				outLog.println(completionTimes / completions);
 			outLog.flush();
 			
+			
+			// used for binary search, disable otherwise
+			/*
+			int change = Math.abs((size - priorSize) / 2);
+			priorSize = size;
+			if (completions < (attempts * 0.25)){
+				currentBoardSize = currentBoardSize - change;
+			}
+			else {
+				currentBoardSize = currentBoardSize + change;
+			}
+			completions = attempts;
+			if (change == 0) // bypass if the window is of size 1
+				completions = 0;
+			*/
+			
+			//used for exponential growth
 			currentBoardSize = currentBoardSize * 2;
 		}
 
@@ -104,9 +127,88 @@ public class NQueens {
 	}
 	
 	/**
+	 * Query how many queens are in contention.  Was in the AIModel class but it makes more sense to bring it out to the parent now
+	 * @return
+	 */
+	public static long getNumberOfAttackingQueens() {
+		long retVal = 0;
+		
+		int localBoard[][] = new int[size][size];
+		
+		for (int x = 0; x <= size-1; x++)
+			for (int y = 0; y <= size-1; y++)
+				localBoard[y][x] = 0;
+		
+		for (int i = 0; i <= (size-1); i++){
+			localBoard[queens[i]][i] += 1; 
+			setSquareValues(testDirection.UPLEFT, i, queens[i], false, localBoard);
+			setSquareValues(testDirection.UPRIGHT, i, queens[i], false, localBoard);
+			setSquareValues(testDirection.DOWNLEFT, i, queens[i], false, localBoard);
+			setSquareValues(testDirection.DOWNRIGHT, i, queens[i], false, localBoard);
+			setSquareValues(testDirection.LEFT, i, queens[i], false, localBoard);
+			setSquareValues(testDirection.RIGHT, i, queens[i], false, localBoard);
+			setSquareValues(testDirection.DOWN, i, queens[i], false, localBoard);
+			setSquareValues(testDirection.UP, i, queens[i], false, localBoard);
+		}
+
+		for (int i = 0; i < size; i++) {
+			retVal = retVal + localBoard[queens[i]][i] - 1;
+		}
+		return retVal;
+	}
+	
+	/**
+	 * Used in the attacking queens calculation
+	 */
+	public static void setSquareValues(testDirection direction, int x, int y, boolean incrementSquare, int localBoard[][]){
+		if ((x >= 0) && (x < size) && (y>= 0) && (y < size)){
+			if (incrementSquare)
+				localBoard[y][x]++;
+			int newX = x;
+			int newY = y;
+			switch (direction){
+			case UPLEFT:
+				newX--;
+				newY--;
+				break;
+			case UPRIGHT:
+				newX++;
+				newY--;
+				break;
+			case DOWNLEFT:
+				newX--;
+				newY++;
+				break;
+			case DOWNRIGHT:
+				newX++;
+				newY++;
+				break;
+			case UP:
+				newY--;
+				break;
+			case DOWN:
+				newY++;
+				break;
+			case RIGHT:
+				newX++;
+				break;
+			case LEFT:
+				newX--;
+				break;
+			default:
+				break;
+			}
+			setSquareValues(direction, newX, newY, true, localBoard);
+		}
+	}
+	
+	
+	
+	/**
 	 * Use this as a one stop location to reset the AI model.  Reduces the chance that multiple AI models will be accidentally combined 
 	 */
 	private static void refreshAIModel() {
+		//myAIModel = new AIModelGreedySearch();
 		myAIModel = new AIModelHillClimb();
 		//myAIModel = new AIModelHillClimbSidewaysMove();
 		//myAIModel = new AIModelBeamSearch();

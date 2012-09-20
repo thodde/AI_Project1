@@ -10,7 +10,7 @@ public class AIModelHillClimbSidewaysMove extends AIModelHillClimb {
 	AIModelHillClimbSidewaysMove(){
 		super();
 		sidewaysMoves = 0;
-		MAXSIDEWAYSMOVES = 20;
+		MAXSIDEWAYSMOVES = 100;
 	}
 	
 	public String printModelAdditionalInfo() {
