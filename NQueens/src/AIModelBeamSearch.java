@@ -7,14 +7,14 @@ public class AIModelBeamSearch extends AIModel {
 	protected long numberOfAttackingQueens;
 	
 	protected LinkedList<BoardConfiguration> solutionsList;
-	protected Hashtable<?, BoardConfiguration> possibleStates;
+	protected Hashtable<Long, BoardConfiguration> possibleStates;
 	private int size;
 	
 	public enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
 	
 	public AIModelBeamSearch() {
 		solutionsList = new LinkedList<BoardConfiguration>();
-		possibleStates = new Hashtable<Object, BoardConfiguration>();
+		possibleStates = new Hashtable<Long, BoardConfiguration>();
 		initialRunPerformed = false;
 		numberOfAttackingQueens = 0;
 	}
@@ -29,6 +29,7 @@ public class AIModelBeamSearch extends AIModel {
 				BoardConfiguration tmpBoard = new BoardConfiguration(size);
 				tmpBoard.setQueenList(NQueens.queens);
 				solutionsList.push(tmpBoard);
+				possibleStates.put(tmpBoard.queenConfiguration, tmpBoard);
 				initialRunPerformed = true;
 			}
 			else {
@@ -36,13 +37,17 @@ public class AIModelBeamSearch extends AIModel {
 			}
 		}
 		
-		int maxBoardsSaved = size;
+		int maxBoardsSaved = 8;
 		int localBoard[][] = new int[size][size];
 		LinkedList<BoardConfiguration> newBoardList = new LinkedList<BoardConfiguration>();
 		LinkedList<PotentialMove> bestMoveList;
 		
 		while((!solutionsList.isEmpty()) && (newBoardList.size() < maxBoardsSaved)) {
 			BoardConfiguration tempBoard = solutionsList.pop();
+			
+			if(tempBoard != possibleStates.get(tempBoard.queenConfiguration)) {
+				possibleStates.put(tempBoard.queenConfiguration, tempBoard);
+			}
 			bestMoveList = new LinkedList<PotentialMove>();
 			
 			for(int i = 0; i < size; i++) {
@@ -80,6 +85,7 @@ public class AIModelBeamSearch extends AIModel {
 				while(!bestMoveList.isEmpty()) {
 					foundBetterMove = true;
 					tmpMove = bestMoveList.pop();
+					
 					BoardConfiguration newBoard = tempBoard.clone();
 					newBoard.queens[tmpMove.xCoordinate] = tmpMove.yCoordinate;
 					
@@ -160,7 +166,7 @@ public class AIModelBeamSearch extends AIModel {
 	//the base method that marks attack directions for every queen
 	public void populateHillValues(int localBoard[][], int queensList[]){
 		for (int i = 0; i <= (size-1); i++){
-			localBoard[NQueens.queens[i]][i] += 1; 
+			localBoard[queensList[i]][i] += 1; 
 			setSquareValues(testDirection.UPLEFT, i, queensList[i], false, localBoard);
 			setSquareValues(testDirection.UPRIGHT, i, queensList[i], false, localBoard);
 			setSquareValues(testDirection.DOWNLEFT, i, queensList[i], false, localBoard);
