@@ -47,9 +47,6 @@ public class NQueens {
 			return;
 		}
 		
-//		int totalIterations = 0;
-//		int beamSearchCompletions = 0;
-//		int hillClimbCompletions = 0;
 		long elapsedTime, startTime;
 		long completionTimes, numberOfAttackingQueens;
 		
@@ -104,21 +101,6 @@ public class NQueens {
 
 		outLog.println("Successfully complete");
 		outLog.close();
-		/*
-		do {
-			initiallyPlaceQueens();
-			redrawScreen(board);
-			AIModel hillClimbAIModel = new AIModelHillClimb();
-			AIModel beamSearchAIModel = new AIModelBeamSearch();
-			
-			//The different types of searches can be separated into different loops or something later
-			//so that we can keep track of their metrics in different ways, but for now it's
-			//just easier to test them all at once since nothing fully works yet anyway.
-			hillClimbCompletions = hillClimbProcedure(hillClimbAIModel, hillClimbCompletions);
-			beamSearchCompletions = beamSearchProcedure(beamSearchAIModel, beamSearchCompletions);
-			totalIterations++;
-			
-		} while (totalIterations < 10); //this will be changed to 99999999 at some point*/
 	}
 	
 	/**
@@ -127,6 +109,8 @@ public class NQueens {
 	private static void refreshAIModel() {
 		myAIModel = new AIModelHillClimb();
 		//myAIModel = new AIModelHillClimbSidewaysMove();
+		//myAIModel = new AIModelBeamSearch();
+		//myAIModel = new AIModelRecursion();
 	}
 	
 	private static void initializeNewBoardSize(int newSize) {
@@ -135,37 +119,6 @@ public class NQueens {
 		completions = 0;
 		attempts = 0;
 		restarts = 0;
-	}
-
-	/*
-	public static int beamSearchProcedure(AIModel beamSearchAIModel, int completions) {
-		//eventually this can be used to repeat testing when we have to complete multiple iterations
-			boolean done = false;
-				
-			while (!done)
-			{
-				//do everything required for one move
-				beamSearchAIModel.performMove();
-				
-				if (testGameSolved()){ //is it solved?  if so mark as complete and keep going until time is done
-					completions++;
-					//initiallyPlaceQueens();
-					//beamSearchAIModel = new AIModelBeamSearch();
-					done = true;
-				}
-				else if (!beamSearchAIModel.testCanPerformMove()){ //stuck, force reset
-					//initiallyPlaceQueens(squares);
-					//beamSearchAIModel = new AIModelBeamSearch();
-					done = true;
-				}
-				redrawScreen(board);
-			}
-				
-			//temporary diagnostic output.  to be removed later
-			String outValue = "";
-			outValue = outValue + " Beam Search Completions:" + completions;
-			JOptionPane.showMessageDialog(null, outValue);
-			return completions;
 	}
 	
 	/**
