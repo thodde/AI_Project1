@@ -1,3 +1,4 @@
+import java.util.Hashtable;
 import java.util.LinkedList;
 
 public class AIModelBeamSearch extends AIModel {
@@ -6,12 +7,14 @@ public class AIModelBeamSearch extends AIModel {
 	protected long numberOfAttackingQueens;
 	
 	protected LinkedList<BoardConfiguration> solutionsList;
+	protected Hashtable<?, BoardConfiguration> possibleStates;
 	private int size;
 	
 	public enum testDirection { LEFT, UP, DOWN, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT; } 
 	
 	public AIModelBeamSearch() {
 		solutionsList = new LinkedList<BoardConfiguration>();
+		possibleStates = new Hashtable<Object, BoardConfiguration>();
 		initialRunPerformed = false;
 		numberOfAttackingQueens = 0;
 	}
@@ -25,6 +28,7 @@ public class AIModelBeamSearch extends AIModel {
 				size = NQueens.size;
 				BoardConfiguration tmpBoard = new BoardConfiguration(size);
 				tmpBoard.setQueenList(NQueens.queens);
+				solutionsList.push(tmpBoard);
 				initialRunPerformed = true;
 			}
 			else {
@@ -32,12 +36,13 @@ public class AIModelBeamSearch extends AIModel {
 			}
 		}
 		
+		int maxBoardsSaved = size;
 		int localBoard[][] = new int[size][size];
 		LinkedList<BoardConfiguration> newBoardList = new LinkedList<BoardConfiguration>();
 		LinkedList<PotentialMove> bestMoveList;
 		
-		while(!solutionsList.isEmpty()) {
-			BoardConfiguration tempBoard = solutionsList.remove(0);
+		while((!solutionsList.isEmpty()) && (newBoardList.size() < maxBoardsSaved)) {
+			BoardConfiguration tempBoard = solutionsList.pop();
 			bestMoveList = new LinkedList<PotentialMove>();
 			
 			for(int i = 0; i < size; i++) {
@@ -54,27 +59,27 @@ public class AIModelBeamSearch extends AIModel {
 					if(squareDifferential < 0) {
 						if((tempBoard.queens[i] != j) && (localBoard[tempBoard.queens[i]][i] >= localBoard[j][i])) {
 							if(localBoard[j][i] == localBoard[tempBoard.queens[i]][i])
-								bestMoveList.add(new PotentialMove(i, j, true));
+								bestMoveList.push(new PotentialMove(i, j, true));
 							else
-								bestMoveList.add(new PotentialMove(i, j, false));
+								bestMoveList.push(new PotentialMove(i, j, false));
 							squareDifferential = localBoard[tempBoard.queens[i]][i] - localBoard[j][i];
 						}
 					}
 					else if((localBoard[tempBoard.queens[i]][i] - localBoard[j][i]) > squareDifferential) {
 						bestMoveList.clear();
-						bestMoveList.add(new PotentialMove(i, j, false));
+						bestMoveList.push(new PotentialMove(i, j, false));
 						squareDifferential = localBoard[tempBoard.queens[i]][i] - localBoard[j][i];
 					}
 					else if(((localBoard[tempBoard.queens[i]][i] - localBoard[j][i]) == squareDifferential) && 
 							(tempBoard.queens[i] != j)) {
-						bestMoveList.add(new PotentialMove(i, j, true));
+						bestMoveList.push(new PotentialMove(i, j, true));
 					}
 				}
 			
 				PotentialMove tmpMove;
 				while(!bestMoveList.isEmpty()) {
 					foundBetterMove = true;
-					tmpMove = bestMoveList.remove(0);
+					tmpMove = bestMoveList.pop();
 					BoardConfiguration newBoard = tempBoard.clone();
 					newBoard.queens[tmpMove.xCoordinate] = tmpMove.yCoordinate;
 					
@@ -85,7 +90,9 @@ public class AIModelBeamSearch extends AIModel {
 						//stop here, solution found
 						return;
 					}
-					newBoardList.add(newBoard);
+					//if the queen configuration has already been loaded, then don't add it in
+					if (!newBoardList.contains(newBoard))
+						newBoardList.push(newBoard);
 				}
 			}
 			solutionsList = newBoardList;
@@ -154,14 +161,14 @@ public class AIModelBeamSearch extends AIModel {
 	public void populateHillValues(int localBoard[][], int queensList[]){
 		for (int i = 0; i <= (size-1); i++){
 			localBoard[NQueens.queens[i]][i] += 1; 
-			setSquareValues(testDirection.UPLEFT, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.UPRIGHT, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.DOWNLEFT, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.DOWNRIGHT, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.LEFT, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.RIGHT, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.DOWN, i, NQueens.queens[i], false, localBoard);
-			setSquareValues(testDirection.UP, i, NQueens.queens[i], false, localBoard);
+			setSquareValues(testDirection.UPLEFT, i, queensList[i], false, localBoard);
+			setSquareValues(testDirection.UPRIGHT, i, queensList[i], false, localBoard);
+			setSquareValues(testDirection.DOWNLEFT, i, queensList[i], false, localBoard);
+			setSquareValues(testDirection.DOWNRIGHT, i, queensList[i], false, localBoard);
+			setSquareValues(testDirection.LEFT, i, queensList[i], false, localBoard);
+			setSquareValues(testDirection.RIGHT, i, queensList[i], false, localBoard);
+			setSquareValues(testDirection.DOWN, i, queensList[i], false, localBoard);
+			setSquareValues(testDirection.UP, i, queensList[i], false, localBoard);
 		}
 	}
 	

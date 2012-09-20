@@ -202,8 +202,6 @@ public class NQueens {
 		}
 	}
 	
-	
-	
 	/**
 	 * Use this as a one stop location to reset the AI model.  Reduces the chance that multiple AI models will be accidentally combined 
 	 */
