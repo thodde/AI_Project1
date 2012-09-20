@@ -86,7 +86,9 @@ public class AIModelGreedySearch extends AIModel {
 						return;
 					}
 
-					newBoardList.add(newBoard);
+					//if the queen configuration has already been loaded, then don't add it in
+					if (!newBoardList.contains(newBoard))
+						newBoardList.add(newBoard);
 				}
 			}
 			myBoards = newBoardList;
